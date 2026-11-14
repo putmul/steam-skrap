@@ -4,9 +4,10 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-load_dotenv()
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+load_dotenv(PROJECT_ROOT / ".env")
 
-ROOT = Path(__file__).resolve().parent
+ROOT = PROJECT_ROOT
 LOG_DIR = ROOT / "logs"
 
 SEARCH_URL = "https://store.steampowered.com/search/?sort_by=Released_DESC&page={page}"
@@ -57,3 +58,5 @@ DB_PORT = int(os.getenv("DB_PORT", "3306"))
 DB_NAME = os.getenv("DB_NAME", "steamscrap")
 DB_USER = os.getenv("DB_USER", "root")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "")
+BOT_REPORT_TIME = os.getenv("BOT_REPORT_TIME", "08:00")

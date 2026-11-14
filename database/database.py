@@ -4,9 +4,9 @@ from datetime import datetime
 import json
 
 try:
-    import mysql.connector
+    import mysql.connector as mysql_connector
 except ImportError:  # dependency diberi pesan jelas saat connect dipanggil
-    mysql.connector = None
+    mysql_connector = None
 
 import config
 
@@ -18,9 +18,9 @@ class Database:
     def connect(self):
         if self.connection is not None:
             return self.connection
-        if mysql.connector is None:
+        if mysql_connector is None:
             raise RuntimeError("Paket mysql.connector belum terpasang")
-        self.connection = mysql.connector.connect(
+        self.connection = mysql_connector.connect(
             host=config.DB_HOST,
             port=config.DB_PORT,
             user=config.DB_USER,

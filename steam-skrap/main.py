@@ -1,12 +1,20 @@
 """Entry point pipeline SteamScrap."""
 import argparse
 import logging
+import sys
 import time
 from datetime import datetime, timedelta
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
+# File ini berada di steam-skrap/, sedangkan database/ berada satu level di atas.
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+SCRAPER_ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, str(PROJECT_ROOT))
+sys.path.insert(0, str(SCRAPER_ROOT))
+
 import config
-from db import Database
+from database.database import Database
 from scraper import SteamScraper
 
 config.LOG_DIR.mkdir(exist_ok=True)

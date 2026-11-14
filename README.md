@@ -25,26 +25,37 @@ diperiksa atau URL dilarang, proses dihentikan.
 ## Menjalankan
 
 ```powershell
-python main.py --test-scrape  # maksimal lima game valid dari H-1
-python main.py --once         # seluruh game valid dari H-1
-python main.py --schedule     # otomatis setiap 02:00 WIB
+python steam-skrap/main.py --test-scrape  # maksimal lima game valid dari H-1
+python steam-skrap/main.py --once         # seluruh game valid dari H-1
+python steam-skrap/main.py --schedule     # otomatis setiap 02:00 WIB
 ```
 
 ## Menjalankan scheduler
 
 ```powershell
-python main.py --schedule
+python steam-skrap/main.py --schedule
 ```
 
 Scraper berjalan setiap pukul 02:00 dan menulis log ke `logs/steam_scraper.log`.
 
+## Menjalankan bot Telegram
+
+Salin `.env.example` menjadi `.env`, lalu isi `BOT_TOKEN` dari BotFather.
+Bot membaca database yang sama dengan scraper dan tidak melakukan scraping sendiri.
+
+```powershell
+pip install -r requirements.txt
+python steam-skrap/bot.py
+```
+
+Bot menyediakan `/start`, `/help`, `/ringkas`, `/terbaru`, `/cari`, `/detail`,
+`/genre`, `/gratis`, `/langganan`, dan `/berhenti`.
+
 ## Menjalankan untuk tanggal tertentu
 
 ```python
-from datetime import date
-from main import jalankan_pipeline
-
-jalankan_pipeline(target_date=date(2026, 11, 13), limit=5)
+# Jalankan dari PowerShell pada root proyek:
+# python steam-skrap/main.py --test-scrape
 ```
 
 Hanya game dengan tanggal lengkap yang diproses. `Coming Soon`, `TBA`, tahun saja,

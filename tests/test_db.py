@@ -1,4 +1,4 @@
-from db import Database
+from database.database import Database
 
 
 class FakeCursor:

@@ -12,11 +12,13 @@ Membangun scraper Python yang:
 
 2. Struktur Proyek
 SteamScrap/
-├── config.py
-├── scraper.py
-├── database.py
-├── main.py
+├── steam-skrap/
+│   ├── config.py
+│   ├── scraper.py
+│   ├── main.py
+│   └── bot.py
 ├── database/
+│   ├── database.py
 │   └── schema.sql
 ├── tests/
 │   ├── fixtures/
@@ -29,7 +31,7 @@ SteamScrap/
 └── requirements.txt
 3. Pembagian Modul
 
-config.py
+steam-skrap/config.py
 Bertanggung jawab atas:
 - pembacaan .env;
 - konfigurasi MariaDB;
@@ -44,7 +46,7 @@ Bertanggung jawab atas:
 - blacklist NSFW;
 - keyword non-base-game.
 
-scraper.py
+steam-skrap/scraper.py
 Berisi semua proses pengambilan dan parsing Steam:
 class SteamScraper:
     check_robots_txt()
@@ -57,7 +59,7 @@ class SteamScraper:
     find_release_candidates()
 Data game dapat direpresentasikan menggunakan dictionary atau dataclass internal. 
 
-database.py
+database/database.py
 Berisi seluruh operasi MariaDB:
 class Database:
     connect()
@@ -65,7 +67,7 @@ class Database:
     save_blocked_app(app_id, reason)
     upsert_game(game)
     close()
-main.py
+steam-skrap/main.py
 Bertanggung jawab atas:
 - orkestrasi pipeline;
 - parsing argumen CLI;
@@ -184,7 +186,7 @@ Jika terdeteksi:
 9. Pipeline Scraping 
 Mengambil data langsung dari Steam dan menyimpannya ke MariaDB.
 Command default
-python main.py --test-scrape
+python steam-skrap/main.py --test-scrape
 Perilaku:
 - menggunakan tanggal sekarang berdasarkan Asia/Jakarta;
 - target tanggal otomatis H-1;
@@ -195,10 +197,10 @@ Jika kurang dari lima game valid tersedia, sistem menyimpan game yang berhasil d
 
 10. Mode Normal
 Scraping H-1 satu kali
-python main.py --once
+python steam-skrap/main.py --once
 Mode ini mengambil seluruh game valid yang dirilis pada H-1.
 Scheduler harian
-python main.py --schedule
+python steam-skrap/main.py --schedule
 Scheduler menjalankan scraping setiap hari pada pukul:
 02:00 Asia/Jakarta
 
