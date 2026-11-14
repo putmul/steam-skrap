@@ -51,11 +51,22 @@ python steam-skrap/bot.py
 Bot menyediakan `/start`, `/help`, `/ringkas`, `/terbaru`, `/cari`, `/detail`,
 `/genre`, `/gratis`, `/langganan`, dan `/berhenti`.
 
+## Menjalankan dashboard Streamlit
+
+Dashboard berada di root proyek dan membaca database yang sama:
+
+```powershell
+pip install -r requirements.txt
+streamlit run app.py
+```
+
+Dashboard menampilkan ringkasan data, chart statistik per genre, serta tab
+Game Berbayar, Game Diskon, dan Free to Play.
+
 ## Menjalankan untuk tanggal tertentu
 
-```python
-# Jalankan dari PowerShell pada root proyek:
-# python steam-skrap/main.py --test-scrape
+```powershell
+python steam-skrap/main.py --test-scrape
 ```
 
 Hanya game dengan tanggal lengkap yang diproses. `Coming Soon`, `TBA`, tahun saja,

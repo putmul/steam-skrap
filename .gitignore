@@ -26,6 +26,7 @@ data/*.db
 *.egg-info/
 build/
 dist/
+.streamlit/secrets.toml
 
 # Folder referensi proyek contoh
 referensi/*

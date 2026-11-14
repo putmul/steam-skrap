@@ -20,6 +20,7 @@ SteamScrap/
 ├── database/
 │   ├── database.py
 │   └── schema.sql
+├── app.py
 ├── tests/
 │   ├── fixtures/
 │   │   ├── search.html
