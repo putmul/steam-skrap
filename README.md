@@ -1,6 +1,13 @@
 # SteamScrap
 
-Scraper HTML Steam untuk mengambil base game yang memiliki tanggal rilis pasti pada H-1.
+Scraper HTML Steam sederhana untuk mengambil base game yang memiliki tanggal rilis
+pasti pada H-1.
+
+Sumber yang digunakan:
+
+- daftar game: `https://store.steampowered.com/search/?sort_by=Released_DESC&page={page}`
+- detail game: `https://store.steampowered.com/app/{app_id}/`
+- izin scraping: `https://store.steampowered.com/robots.txt`
 
 ## Instalasi
 
@@ -9,23 +16,35 @@ Scraper HTML Steam untuk mengambil base game yang memiliki tanggal rilis pasti p
 pip install -r requirements.txt
 ```
 
-Jalankan `database/schema.sql` pada MariaDB, lalu pastikan nilai database pada `.env` benar.
+Jalankan `database/schema.sql` pada MariaDB, lalu atur `DB_HOST`, `DB_PORT`, `DB_NAME`,
+`DB_USER`, dan `DB_PASSWORD` bila diperlukan pada `.env`.
+
+Sebelum halaman Steam diambil, program selalu memeriksa `robots.txt`. Jika tidak dapat
+diperiksa atau URL dilarang, proses dihentikan.
+
+## Menjalankan
+
+```powershell
+python main.py --test-scrape  # maksimal lima game valid dari H-1
+python main.py --once         # seluruh game valid dari H-1
+python main.py --schedule     # otomatis setiap 02:00 WIB
+```
 
 ## Menjalankan scheduler
 
 ```powershell
-python -m stimskrapbot.scrapper
+python main.py --schedule
 ```
 
 Scraper berjalan setiap pukul 02:00 dan menulis log ke `logs/steam_scraper.log`.
 
-## Dry-run tanggal tertentu
+## Menjalankan untuk tanggal tertentu
 
 ```python
 from datetime import date
-from stimskrapbot.scrapper import SteamScraper
+from main import jalankan_pipeline
 
-SteamScraper().run_daily_release_scraper(date(2026, 11, 14))
+jalankan_pipeline(target_date=date(2026, 11, 13), limit=5)
 ```
 
 Hanya game dengan tanggal lengkap yang diproses. `Coming Soon`, `TBA`, tahun saja,

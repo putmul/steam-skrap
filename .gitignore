@@ -1,0 +1,31 @@
+# Rahasia dan konfigurasi lokal
+.env
+.env.*
+!.env.example
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Python cache dan hasil test
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Log dan artefak runtime
+logs/*.log
+*.log
+data/*.db
+*.sqlite
+*.sqlite3
+
+# Build/package
+*.egg-info/
+build/
+dist/
+
+# Folder referensi proyek contoh
+referensi/*

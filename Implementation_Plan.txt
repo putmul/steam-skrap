@@ -1,0 +1,255 @@
+Implementation Plan — Steam New Releases Scraper
+1. Tujuan
+Membangun scraper Python yang:
+- mengambil game Steam yang memiliki tanggal rilis pasti;
+- mengambil game yang rilis pada tanggal H-1;
+- hanya memproses base game;
+- mengabaikan DLC, pack, bundle, soundtrack, dan added content;
+- memisahkan genres dan user-defined tags;
+- menyaring konten NSFW;
+- menyimpan game valid ke MariaDB;
+- menyediakan pipeline untuk uji cepat mengambil lima game terbaru dan menyimpannya ke database secara dinamis (jika command dijalankan tanggal 14, program akan scrapping game terbaru pada tanggal 13).
+
+2. Struktur Proyek
+SteamScrap/
+├── config.py
+├── scraper.py
+├── database.py
+├── main.py
+├── database/
+│   └── schema.sql
+├── tests/
+│   ├── fixtures/
+│   │   ├── search.html
+│   │   └── app_detail.html
+│   ├── test_parser.py
+│   └── test_scraper.py
+├── logs/
+├── .env
+└── requirements.txt
+3. Pembagian Modul
+
+config.py
+Bertanggung jawab atas:
+- pembacaan .env;
+- konfigurasi MariaDB;
+- URL Steam:
+  - robots.txt: https://store.steampowered.com/robots.txt
+  - daftar game: https://store.steampowered.com/search/?sort_by=Released_DESC&page={page}
+  - detail game: https://store.steampowered.com/app/{app_id}/
+- User-Agent;
+- timeout request;
+- jeda request;
+- timezone Asia/Jakarta;
+- blacklist NSFW;
+- keyword non-base-game.
+
+scraper.py
+Berisi semua proses pengambilan dan parsing Steam:
+class SteamScraper:
+    check_robots_txt()
+    parse_steam_date()
+    parse_idr_price()
+    parse_search_page()
+    scrape_app_detail()
+    is_base_game()
+    is_nsfw()
+    find_release_candidates()
+Data game dapat direpresentasikan menggunakan dictionary atau dataclass internal. 
+
+database.py
+Berisi seluruh operasi MariaDB:
+class Database:
+    connect()
+    is_blocked(app_id)
+    save_blocked_app(app_id, reason)
+    upsert_game(game)
+    close()
+main.py
+Bertanggung jawab atas:
+- orkestrasi pipeline;
+- parsing argumen CLI;
+- logging ke logs/steam_scraper.log;
+- smoke test scraping;
+- scraping normal;
+- scheduler pukul 02:00 WIB;
+- commit dan rollback transaksi.
+
+4. Database
+Tabel games
+Kolom utama:
+app_id BIGINT PRIMARY KEY
+release_date DATE
+nama VARCHAR(255)
+genres TEXT
+tags TEXT
+diskon_persen SMALLINT
+harga_asli DECIMAL(12,2)
+harga_setelah_diskon DECIMAL(12,2)
+link_url VARCHAR(500)
+image_url VARCHAR(500)
+rating VARCHAR(100)
+is_active BOOLEAN
+pertama_dilihat DATETIME
+terakhir_dilihat DATETIME
+genres dan tags disimpan terpisah. Format penyimpanan dapat berupa JSON string atau comma-separated text.
+
+Tabel blocked_apps
+app_id BIGINT PRIMARY KEY
+alasan TEXT
+blocked_at DATETIME
+app_id digunakan untuk mencegah game NSFW diproses ulang.
+
+5. Logika Tanggal Rilis
+Hanya tanggal lengkap yang diterima:
+14 Nov, 2026       diterima
+Nov 14, 2026       diterima
+Coming Soon        diabaikan
+TBA                diabaikan
+2026               diabaikan
+kosong             diabaikan
+Aturan pagination:
+release_date == target_date
+    proses
+
+release_date > target_date
+    lewati
+
+release_date < target_date
+    hentikan pagination
+
+tanggal tidak valid
+    lewati dan lanjutkan
+Tanggal tidak valid tidak boleh menghentikan crawling karena dapat berada di antara game dengan tanggal valid.
+
+6. Filter Base Game
+Game diabaikan jika terdeteksi sebagai:
+- DLC;
+- downloadable content;
+- expansion;
+- add-on;
+- pack;
+- content pack;
+- season pass;
+- bundle;
+- soundtrack;
+- artbook;
+- prologue;
+- episode tambahan;
+- tool atau video.
+Deteksi dilakukan berdasarkan:
+1. metadata tipe aplikasi pada HTML;
+2. teks seperti This content requires the base application;
+3. indikator DLC pada halaman;
+4. title dan deskripsi produk.
+Jika status produk ambigu, produk diabaikan. Early Access/Demo tetap dianggap sebagai base game.
+
+7. Ekstraksi Detail Game
+Data yang diambil:
+- app_id;
+- nama;
+- tanggal rilis;
+- genres dari bagian Steam Genres;
+- tags dari Popular User-Defined Tags;
+- diskon;
+- harga asli;
+- harga setelah diskon;
+- link game;
+- image URL;
+- rating;
+- mature content description.
+Harga Rupiah dikonversi ke Decimal. Game gratis disimpan sebagai 0.00.
+
+8. Filter NSFW
+Pemeriksaan dilakukan terhadap:
+- user-defined tags;
+- genres;
+- mature content description.
+Contoh blacklist:
+nsfw
+sexual content
+hentai
+nudity
+adult only
+adult content
+eroge
+pornography
+explicit sexual content
+Jika terdeteksi:
+1. game tidak disimpan ke games;
+2. game disimpan ke blocked_apps;
+3. alasan deteksi dicatat;
+4. proses detail dihentikan.
+
+9. Pipeline Scraping 
+Mengambil data langsung dari Steam dan menyimpannya ke MariaDB.
+Command default
+python main.py --test-scrape
+Perilaku:
+- menggunakan tanggal sekarang berdasarkan Asia/Jakarta;
+- target tanggal otomatis H-1;
+- mengambil lima game valid;
+- menyimpan hasil ke database.
+Game yang NSFW, bukan base game, gagal diambil, atau tidak memiliki tanggal lengkap tidak dihitung sebagai bagian dari lima game. Scraper melanjutkan ke kandidat berikutnya.
+Jika kurang dari lima game valid tersedia, sistem menyimpan game yang berhasil dan menulis peringatan ke log.
+
+10. Mode Normal
+Scraping H-1 satu kali
+python main.py --once
+Mode ini mengambil seluruh game valid yang dirilis pada H-1.
+Scheduler harian
+python main.py --schedule
+Scheduler menjalankan scraping setiap hari pada pukul:
+02:00 Asia/Jakarta
+
+11. Etika Scraping dan Pemeriksaan robots.txt (P11)
+Sebelum request ke halaman search maupun detail game, scraper wajib:
+1. mengambil `https://store.steampowered.com/robots.txt` satu kali pada awal setiap proses scraping;
+2. mem-parsing aturan robots.txt menggunakan User-Agent yang sama dengan request scraping;
+3. memeriksa `can_fetch()` untuk setiap URL search dan detail sebelum request dilakukan;
+4. tidak mengakses URL yang dilarang oleh robots.txt;
+5. menghentikan proses dengan aman dan menulis alasan ke log jika robots.txt gagal diambil, tidak dapat diparsing, atau URL target tidak diizinkan;
+6. menggunakan jeda request dan timeout yang dikonfigurasi agar tidak membebani server.
+
+Hasil pemeriksaan robots.txt disimpan di memori selama satu proses agar tidak mengambil
+robots.txt berulang kali. Pemeriksaan ini harus terjadi sebelum halaman Steam pertama
+diakses dan tidak boleh dilewati oleh mode `--test-scrape`, `--once`, maupun `--schedule`.
+
+12. Testing Tanpa Internet
+Unit test menggunakan:
+- fixture HTML lokal;
+- mock requests.Session.get;
+- database mock atau test database;
+- tanpa koneksi internet Steam.
+
+Test yang diperlukan:
+- parsing tanggal;
+- pengabaian Coming Soon, TBA, dan tahun saja;
+- parsing harga Rupiah;
+- pemisahan genres dan tags;
+- deteksi base game;
+- deteksi DLC dan added content;
+- filter NSFW;
+- parsing search page;
+- parsing detail app;
+- perilaku pagination;
+- pemeriksaan robots.txt dan penghentian saat URL tidak diizinkan;
+- upsert game;
+- penyimpanan blocked app.
+
+Menjalankan test:
+pytest -q
+
+13. Kriteria Selesai
+Implementasi dianggap selesai jika:
+ 1. --test-scrape mengambil lima game valid dari tanggal H-1.
+ 2. Data hasil pipeline tersimpan di MariaDB.
+ 3. Genres dan tags tersimpan terpisah.
+ 4. Game tanpa tanggal pasti diabaikan.
+ 5. DLC dan added content tidak masuk database.
+ 6. Game NSFW hanya masuk blocked_apps.
+ 7. --once mengambil seluruh game H-1.
+ 8. --schedule berjalan pukul 02:00 WIB.
+ 9. Semua unit test berjalan tanpa internet.
+10. Pemeriksaan `robots.txt` dilakukan sebelum request scraping dan URL yang dilarang tidak diakses.
+11. Log tersimpan di logs/steam_scraper.log.
