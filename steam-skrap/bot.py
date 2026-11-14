@@ -15,6 +15,7 @@ from collections import Counter
 from datetime import time as datetime_time
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
+from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -24,7 +25,7 @@ sys.path.insert(0, str(SCRAPER_ROOT))
 
 from database.database import Database
 
-try:
+if TYPE_CHECKING:
     from telegram import BotCommand, Update
     from telegram.ext import (
         Application,
@@ -33,9 +34,19 @@ try:
         MessageHandler,
         filters,
     )
-except ImportError:  # bot.py masih dapat diimpor untuk menguji fungsi formatter
-    BotCommand = Update = Application = CommandHandler = ContextTypes = None
-    MessageHandler = filters = None
+else:
+    try:
+        from telegram import BotCommand, Update
+        from telegram.ext import (
+            Application,
+            CommandHandler,
+            ContextTypes,
+            MessageHandler,
+            filters,
+        )
+    except ImportError:  # bot.py masih dapat diimpor untuk menguji fungsi formatter
+        BotCommand = Update = Application = CommandHandler = ContextTypes = None
+        MessageHandler = filters = None
 
 import config
 
