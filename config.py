@@ -4,7 +4,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+PROJECT_ROOT = Path(__file__).resolve().parent
 load_dotenv(PROJECT_ROOT / ".env")
 
 ROOT = PROJECT_ROOT
@@ -46,11 +46,7 @@ NON_BASE_KEYWORDS = (
     "season pass",
     "bundle",
     "soundtrack",
-    "artbook",
-    "prologue",
-    "episode",
-    "tool",
-    "video",
+    "artbook"
 )
 
 DB_HOST = os.getenv("DB_HOST", "127.0.0.1")

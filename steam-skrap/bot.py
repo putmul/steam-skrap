@@ -49,11 +49,11 @@ BANTUAN = (
     "/start - Sapaan dan daftar command\n"
     "/help - Menampilkan bantuan\n"
     "/ringkas - Statistik katalog game\n"
-    "/terbaru [jumlah] - Game terbaru, default 10\n"
+    "/terbaru - Menampilkan 10 game terbaru\n"
     "/cari <kata> - Cari berdasarkan nama, genre, atau tag\n"
     "/detail <app_id> - Detail lengkap game\n"
     "/genre <nama> - Game berdasarkan genre\n"
-    "/gratis [jumlah] - Game gratis, default 10\n"
+    "/gratis - Menampilkan 10 game gratis\n"
     "/langganan - Aktifkan laporan harian\n"
     "/berhenti - Hentikan laporan harian"
 )
@@ -243,12 +243,7 @@ async def ringkas(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def terbaru(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    try:
-        jumlah = _jumlah(context.args)
-    except ValueError as exc:
-        await update.message.reply_text(str(exc))
-        return
-    await update.message.reply_text(format_game_list(query_games(jumlah), "Game terbaru"))
+    await update.message.reply_text(format_game_list(query_games(10), "Game terbaru"))
 
 
 async def cari(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -282,12 +277,7 @@ async def genre(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def gratis(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    try:
-        jumlah = _jumlah(context.args)
-    except ValueError as exc:
-        await update.message.reply_text(str(exc))
-        return
-    await update.message.reply_text(format_game_list(query_free(jumlah), "Game gratis"))
+    await update.message.reply_text(format_game_list(query_free(10), "Game gratis"))
 
 
 async def kirim_laporan_harian(context: ContextTypes.DEFAULT_TYPE):

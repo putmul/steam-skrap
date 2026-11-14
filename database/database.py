@@ -2,6 +2,7 @@
 from contextlib import contextmanager
 from datetime import datetime
 import json
+from zoneinfo import ZoneInfo
 
 try:
     import mysql.connector as mysql_connector
@@ -9,6 +10,11 @@ except ImportError:  # dependency diberi pesan jelas saat connect dipanggil
     mysql_connector = None
 
 import config
+
+
+def _waktu_sekarang():
+    """Waktu Asia/Jakarta dalam format naive untuk kolom MariaDB DATETIME."""
+    return datetime.now(ZoneInfo(config.TIMEZONE)).replace(tzinfo=None)
 
 
 class Database:
@@ -86,11 +92,11 @@ class Database:
                 VALUES (%s, %s, %s)
                 ON DUPLICATE KEY UPDATE alasan = VALUES(alasan), blocked_at = VALUES(blocked_at)
                 """,
-                (app_id, reason, datetime.now()),
+                (app_id, reason, _waktu_sekarang()),
             )
 
     def upsert_game(self, game):
-        now = datetime.now()
+        now = _waktu_sekarang()
         with self.cursor() as cursor:
             cursor.execute(
                 """

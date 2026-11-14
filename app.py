@@ -169,9 +169,13 @@ search = st.sidebar.text_input("Cari nama game").strip().lower()
 
 filtered_games = games
 if selected_genres:
+    selected_genres_normalized = {genre.casefold() for genre in selected_genres}
     filtered_games = [
         game for game in filtered_games
-        if any(genre.lower() in selected_genres for genre in game["genres"].split(", "))
+        if any(
+            genre.casefold() in selected_genres_normalized
+            for genre in game["genres"].split(", ")
+        )
     ]
 if search:
     filtered_games = [game for game in filtered_games if search in game["nama"].lower()]
