@@ -139,8 +139,8 @@ def game_table(games, sort_by, ascending=False):
     )
 
 
-st.set_page_config(page_title="SteamScrap Dashboard", page_icon="🎮", layout="wide")
-st.title("🎮 SteamScrap Dashboard")
+st.set_page_config(page_title="SteamScrap Dashboard", layout="wide")
+st.title("SteamScrap Dashboard")
 st.caption("Ringkasan katalog game Steam dari database MariaDB")
 
 if st.sidebar.button("Refresh Data"):

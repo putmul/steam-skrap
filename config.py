@@ -24,6 +24,22 @@ MAKS_COBA = int(os.getenv("MAKS_COBA", "3"))
 
 TIMEZONE = "Asia/Jakarta"
 
+
+def _env_float(name, default):
+    try:
+        value = float(os.getenv(name, str(default)))
+        return value if value > 0 else default
+    except (TypeError, ValueError):
+        return default
+
+
+def _env_int(name, default):
+    try:
+        value = int(os.getenv(name, str(default)))
+        return value if value >= 0 else default
+    except (TypeError, ValueError):
+        return default
+
 NSFW_BLACKLIST = (
     "nsfw",
     "sexual content",
@@ -56,3 +72,10 @@ DB_USER = os.getenv("DB_USER", "root")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "")
 BOT_TOKEN = os.getenv("BOT_TOKEN", "")
 BOT_REPORT_TIME = os.getenv("BOT_REPORT_TIME", "08:00")
+BOT_CONNECT_TIMEOUT = _env_float("BOT_CONNECT_TIMEOUT", 30)
+BOT_READ_TIMEOUT = _env_float("BOT_READ_TIMEOUT", 30)
+BOT_WRITE_TIMEOUT = _env_float("BOT_WRITE_TIMEOUT", 30)
+BOT_POOL_TIMEOUT = _env_float("BOT_POOL_TIMEOUT", 10)
+BOT_BOOTSTRAP_RETRIES = _env_int("BOT_BOOTSTRAP_RETRIES", 5)
+BOT_POLL_TIMEOUT = _env_int("BOT_POLL_TIMEOUT", 10)
+BOT_PROXY = os.getenv("BOT_PROXY", "").strip() or None

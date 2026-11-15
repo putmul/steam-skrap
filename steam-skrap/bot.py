@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 import sys
 from collections import Counter
 from datetime import time as datetime_time
@@ -52,8 +51,8 @@ import config
 
 log = logging.getLogger("steamscrap.bot")
 WIB = ZoneInfo(config.TIMEZONE)
-BOT_TOKEN = os.getenv("BOT_TOKEN", "")
-BOT_REPORT_TIME = os.getenv("BOT_REPORT_TIME", "08:00")
+BOT_TOKEN = config.BOT_TOKEN
+BOT_REPORT_TIME = config.BOT_REPORT_TIME
 
 BANTUAN = (
     "Perintah SteamScrap:\n"
@@ -363,7 +362,21 @@ def buat_aplikasi(token):
             "Dependency Telegram belum terpasang. Jalankan: "
             "pip install python-telegram-bot[job-queue]"
         )
-    application = Application.builder().token(token).post_init(setelah_mulai).build()
+    builder = (
+        Application.builder()
+        .token(token)
+        .connect_timeout(config.BOT_CONNECT_TIMEOUT)
+        .read_timeout(config.BOT_READ_TIMEOUT)
+        .write_timeout(config.BOT_WRITE_TIMEOUT)
+        .pool_timeout(config.BOT_POOL_TIMEOUT)
+        .get_updates_connect_timeout(config.BOT_CONNECT_TIMEOUT)
+        .get_updates_read_timeout(config.BOT_READ_TIMEOUT)
+        .get_updates_write_timeout(config.BOT_WRITE_TIMEOUT)
+        .get_updates_pool_timeout(config.BOT_POOL_TIMEOUT)
+    )
+    if config.BOT_PROXY:
+        builder = builder.proxy(config.BOT_PROXY).get_updates_proxy(config.BOT_PROXY)
+    application = builder.post_init(setelah_mulai).build()
     handlers = {
         "start": start,
         "help": help_command,
@@ -392,7 +405,11 @@ def main():
         raise SystemExit("BOT_TOKEN belum diisi pada file .env")
     app = buat_aplikasi(BOT_TOKEN)
     log.info("Bot SteamScrap berjalan")
-    app.run_polling(allowed_updates=["message"])
+    app.run_polling(
+        allowed_updates=["message"],
+        timeout=config.BOT_POLL_TIMEOUT,
+        bootstrap_retries=config.BOT_BOOTSTRAP_RETRIES,
+    )
 
 
 if __name__ == "__main__":
